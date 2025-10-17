@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -79,8 +80,7 @@ export default function Home() {
   };
 
   const handleSettingsSave = (newCurrencies: string[]) => {
-    setDisplayedCurrencies(newCurrencies.filter(c => c && c !== 'none' && c !== baseCurrency));
-    setIsSettingsOpen(false);
+    setDisplayedCurrencies(newCurrencies);
   };
   
   const handleRefresh = () => {
@@ -134,7 +134,7 @@ export default function Home() {
         isOpen={isSettingsOpen}
         onOpenChange={setIsSettingsOpen}
         allCurrencies={allCurrencies}
-        selectedCurrencies={[...displayedCurrencies, baseCurrency]}
+        selectedCurrencies={displayedCurrencies}
         onSave={handleSettingsSave}
         baseCurrency={baseCurrency}
       />

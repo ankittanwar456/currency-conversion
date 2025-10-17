@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -45,7 +46,7 @@ const SettingsDialog = ({
 
   useEffect(() => {
     if (isOpen) {
-      const initialSelection = selectedCurrencies.filter(c => c !== baseCurrency);
+      const initialSelection = selectedCurrencies.filter(c => c && c !== baseCurrency);
       const paddedSelection = Array.from({ length: NUM_CURRENCIES }, (_, i) => initialSelection[i] || 'none');
       setLocalSelection(paddedSelection);
     }
@@ -80,6 +81,7 @@ const SettingsDialog = ({
     }
 
     onSave(uniqueSelection);
+    onOpenChange(false);
   };
 
   return (
