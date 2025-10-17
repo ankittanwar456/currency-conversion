@@ -46,7 +46,7 @@ const SettingsDialog = ({
   useEffect(() => {
     if (isOpen) {
       const initialSelection = selectedCurrencies.filter(c => c !== baseCurrency);
-      const paddedSelection = Array.from({ length: NUM_CURRENCIES }, (_, i) => initialSelection[i] || '');
+      const paddedSelection = Array.from({ length: NUM_CURRENCIES }, (_, i) => initialSelection[i] || 'none');
       setLocalSelection(paddedSelection);
     }
   }, [isOpen, selectedCurrencies, baseCurrency]);
@@ -58,7 +58,7 @@ const SettingsDialog = ({
   };
   
   const handleSave = () => {
-    const finalSelection = localSelection.filter(c => c && c !== '');
+    const finalSelection = localSelection.filter(c => c && c !== 'none');
     const uniqueSelection = [...new Set(finalSelection)];
 
     if (uniqueSelection.length !== finalSelection.length) {
@@ -99,14 +99,14 @@ const SettingsDialog = ({
                   Slot {index + 1}
                 </Label>
                 <Select
-                  value={localSelection[index] || ''}
+                  value={localSelection[index] || 'none'}
                   onValueChange={(value) => handleSelectionChange(index, value)}
                 >
                   <SelectTrigger id={`currency-${index}`} className="col-span-3">
                     <SelectValue placeholder="Select a currency" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Disable</SelectItem>
+                    <SelectItem value="none">Disable</SelectItem>
                     {allCurrencies
                         .filter(c => c.code !== baseCurrency)
                         .map((currency) => (

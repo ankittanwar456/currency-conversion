@@ -79,7 +79,7 @@ export default function Home() {
   };
 
   const handleSettingsSave = (newCurrencies: string[]) => {
-    setDisplayedCurrencies(newCurrencies.filter(c => c && c !== baseCurrency));
+    setDisplayedCurrencies(newCurrencies.filter(c => c && c !== 'none' && c !== baseCurrency));
     setIsSettingsOpen(false);
   };
   
