@@ -46,8 +46,22 @@ export function getFlagUrl(currencyCode: string): string {
     CHF: 'CH',
     CNY: 'CN',
     INR: 'IN',
-    BTC: 'BTC', // Fictional, but some APIs include it
-    ETH: 'ETH', // Fictional
+    BTC: 'BTC',
+    ETH: 'ETH',
+    HKD: 'HK',
+    SGD: 'SG',
+    SEK: 'SE',
+    KRW: 'KR',
+    NOK: 'NO',
+    MXN: 'MX',
+    NZD: 'NZ',
+    ZAR: 'ZA',
+    BRL: 'BR',
+    RUB: 'RU',
+    TRY: 'TR',
+    ANG: 'CW', // Curaçao and Sint Maarten
+    XCD: 'AG', // Organisation of Eastern Caribbean States, Antigua and Barbuda flag as representative
+    XPF: 'PF', // French Polynesia
   };
 
   if (mappings[currencyCode.toUpperCase()]) {

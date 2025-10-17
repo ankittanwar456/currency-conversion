@@ -26,6 +26,11 @@ const CurrencyRow = ({ code, name, value, isBase, onClick, showResult }: Currenc
 
   const flagUrl = getFlagUrl(code);
 
+  const handleImageError = () => {
+    console.error(`Failed to load flag for currency: ${code}. URL: ${flagUrl}`);
+    // The onError of the Image tag will fall back to the default.
+  }
+
   const content = (
     <div className={cn(
         "flex items-center justify-between w-full p-3 my-1.5 rounded-lg transition-colors",
@@ -40,7 +45,11 @@ const CurrencyRow = ({ code, name, value, isBase, onClick, showResult }: Currenc
             width={40}
             height={40}
             className="rounded-full object-cover bg-muted"
-            onError={(e) => { e.currentTarget.src = `https://flagsapi.com/US/flat/64.png`; e.currentTarget.style.backgroundColor = 'transparent' }}
+            onError={(e) => { 
+              handleImageError();
+              e.currentTarget.src = `https://flagsapi.com/US/flat/64.png`; 
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
           />
         </div>
         <div className="flex flex-col items-start">
