@@ -81,9 +81,17 @@ export function getFlagUrl(currencyCode: string): string {
     BRL: 'BR',
     RUB: 'RU',
     TRY: 'TR',
-    ANG: 'CW', // Curaçao and Sint Maarten
-    XCD: 'AG', // Organisation of Eastern Caribbean States, Antigua and Barbuda flag as representative
-    XPF: 'PF', // French Polynesia
+    ANG: 'CW',
+    XCD: 'AG',
+    XPF: 'PF',
+    XAF: 'CM', // Central African CFA Franc, Cameroon as representative
+    XOF: 'SN', // West African CFA franc, Senegal as representative
+    XCG: 'CW', // Caribbean Guilder, Curaçao as representative
+    XDR: 'UN', // Special Drawing Right, UN as representative
+    XAU: 'UN', // Gold, UN as representative
+    XAG: 'UN', // Silver, UN as representative
+    XPT: 'UN', // Platinum, UN as representative
+    XPD: 'UN', // Palladium, UN as representative
   };
 
   if (mappings[currencyCode.toUpperCase()]) {
