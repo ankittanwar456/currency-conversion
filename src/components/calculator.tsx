@@ -2,6 +2,7 @@
 
 import { Delete } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useRef } from 'react';
 
 interface CalculatorProps {
   value: string;
@@ -9,6 +10,8 @@ interface CalculatorProps {
 }
 
 const Calculator = ({ value, onInput }: CalculatorProps) => {
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+
   const handlePress = (key: string) => {
     if (key === 'backspace') {
       if (value.length > 1) {
@@ -33,6 +36,18 @@ const Calculator = ({ value, onInput }: CalculatorProps) => {
     onInput('0');
   }
 
+  const handleBackspaceMouseDown = () => {
+    longPressTimer.current = setTimeout(handleClear, 700);
+  };
+
+  const handleBackspaceMouseUp = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+
   const keys = [
     '7', '8', '9',
     '4', '5', '6',
@@ -53,7 +68,15 @@ const Calculator = ({ value, onInput }: CalculatorProps) => {
           {key}
         </Button>
       ))}
-      <Button onClick={() => handlePress('backspace')} onLongPress={handleClear} className={buttonStyle} aria-label="Backspace">
+      <Button 
+        onClick={() => handlePress('backspace')} 
+        onMouseDown={handleBackspaceMouseDown}
+        onMouseUp={handleBackspaceMouseUp}
+        onTouchStart={handleBackspaceMouseDown}
+        onTouchEnd={handleBackspaceMouseUp}
+        onMouseLeave={handleBackspaceMouseUp}
+        className={buttonStyle} 
+        aria-label="Backspace">
         <Delete />
       </Button>
     </div>
