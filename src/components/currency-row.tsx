@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -29,9 +30,9 @@ const CurrencyRow = ({ code, name, value, isBase, onClick, showResult }: Currenc
     <div className={cn(
         "flex items-center justify-between w-full p-3 my-1.5 rounded-lg transition-colors",
         isBase ? 'bg-secondary' : 'hover:bg-secondary/50',
-        onClick && 'cursor-pointer'
+        onClick && !isBase && 'cursor-pointer'
       )}>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
         <div className="relative h-10 w-10 shrink-0">
            <Image
             src={flagUrl}
@@ -44,7 +45,7 @@ const CurrencyRow = ({ code, name, value, isBase, onClick, showResult }: Currenc
         </div>
         <div className="flex flex-col items-start">
           <p className="font-bold text-lg">{code.toUpperCase()}</p>
-          {name && <p className="text-sm text-muted-foreground -mt-1">{name}</p>}
+          <p className="text-sm text-muted-foreground -mt-1">{name || ' '}</p>
         </div>
       </div>
       <div className="text-right flex-shrink basis-1/2 overflow-hidden">
@@ -59,7 +60,7 @@ const CurrencyRow = ({ code, name, value, isBase, onClick, showResult }: Currenc
     </div>
   );
   
-  if (onClick) {
+  if (onClick && !isBase) {
     return <Button variant="ghost" className="h-auto p-0 w-full" onClick={onClick}>{content}</Button>
   }
 

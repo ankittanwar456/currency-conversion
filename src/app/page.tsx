@@ -2,32 +2,29 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Settings, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import Calculator from '@/components/calculator';
-import SettingsDialog from '@/components/settings-dialog';
 import CurrencyExchange from '@/components/currency-exchange';
 import usePersistentState from '@/hooks/use-persistent-state';
 import type { Currency, Rates } from '@/lib/currencies';
 import { fetchCurrencies, fetchRates } from '@/lib/currencies';
 import { useToast } from '@/hooks/use-toast';
+import CurrencySelection from '@/components/currency-selection';
 
 const DEFAULT_CURRENCIES = ['EUR', 'JPY', 'GBP', 'AUD'];
 
 function evaluateExpression(expression: string): string {
   try {
-    // Sanitize the expression to prevent security risks and handle percentage
     const sanitizedExpression = expression
       .replace(/[^-()\d/*+.]/g, '');
     
-    // Using Function constructor is safer than eval, but still needs caution
     const result = new Function('return ' + sanitizedExpression)();
 
     if (isNaN(result) || !isFinite(result)) {
       return 'Error';
     }
-    // Limit to a reasonable number of decimal places
     return String(parseFloat(result.toFixed(10)));
   } catch (error) {
     return 'Error';
@@ -44,8 +41,8 @@ export default function Home() {
   const [allCurrencies, setAllCurrencies] = useState<Currency[]>([]);
   const [rates, setRates] = useState<Rates | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showResult, setShowResult] = useState(false);
+  const [selectingCurrencyIndex, setSelectingCurrencyIndex] = useState<number | null>(null);
 
 
   const loadRates = useCallback(async (base: string) => {
@@ -102,14 +99,38 @@ export default function Home() {
     setShowResult(false);
   };
 
-  const handleSettingsSave = (newCurrencies: string[]) => {
-    const finalSelection = newCurrencies.filter(c => c && c !== 'none');
-    setDisplayedCurrencies(finalSelection);
+  const handleCurrencySelection = (newCurrency: string | null) => {
+    if (selectingCurrencyIndex === null) return;
+  
+    const newDisplayedCurrencies = [...displayedCurrencies];
+    if (newCurrency) {
+      // Prevent adding duplicate currencies
+      if (displayedCurrencies.includes(newCurrency) && displayedCurrencies[selectingCurrencyIndex] !== newCurrency) {
+        toast({
+          variant: "destructive",
+          title: "Duplicate Currency",
+          description: `${newCurrency} is already displayed.`,
+        });
+        setSelectingCurrencyIndex(null);
+        return;
+      }
+      newDisplayedCurrencies[selectingCurrencyIndex] = newCurrency;
+    } else {
+      // "Disable" was chosen
+      newDisplayedCurrencies.splice(selectingCurrencyIndex, 1);
+    }
+  
+    setDisplayedCurrencies(newDisplayedCurrencies);
+    setSelectingCurrencyIndex(null);
   };
   
   const handleRefresh = () => {
     loadRates(baseCurrency);
   };
+
+  const handleCurrencyRowClick = (index: number) => {
+    setSelectingCurrencyIndex(index);
+  }
   
   const handleCalculatorInput = (key: string) => {
     if (showResult && /[\d.]/.test(key)) {
@@ -167,13 +188,23 @@ export default function Home() {
     if (/[+\-*/]/.test(amount) && !/e[+\-]/i.test(amount)) {
       const lastChar = amount[amount.length - 1];
       if (/[+\-*/.]/.test(lastChar)) {
-        // Don't evaluate if the expression is incomplete
         return '...';
       }
       return evaluateExpression(amount);
     }
     return amount;
   }, [amount, showResult]);
+
+  if (selectingCurrencyIndex !== null) {
+    return (
+      <CurrencySelection
+        allCurrencies={allCurrencies}
+        baseCurrency={baseCurrency}
+        onSelect={handleCurrencySelection}
+        onCancel={() => setSelectingCurrencyIndex(null)}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen max-h-screen bg-background text-foreground max-w-md mx-auto">
@@ -182,9 +213,6 @@ export default function Home() {
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={handleRefresh} aria-label="Refresh rates">
             <RefreshCw className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={() => setIsSettingsOpen(true)} aria-label="Open settings">
-            <Settings className="h-5 w-5" />
           </Button>
         </div>
       </header>
@@ -208,6 +236,7 @@ export default function Home() {
             displayedCurrencies={displayedCurrencies}
             loading={loading}
             showResult={showResult}
+            onCurrencyRowClick={handleCurrencyRowClick}
           />
         )}
       </main>
@@ -215,15 +244,6 @@ export default function Home() {
       <footer className="mt-auto">
         <Calculator onInput={handleCalculatorInput} onEquals={handleEquals} value={amount} />
       </footer>
-
-      <SettingsDialog
-        isOpen={isSettingsOpen}
-        onOpenChange={setIsSettingsOpen}
-        allCurrencies={allCurrencies}
-        selectedCurrencies={displayedCurrencies}
-        onSave={handleSettingsSave}
-        baseCurrency={baseCurrency}
-      />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Rates } from '@/lib/currencies';
@@ -14,6 +15,7 @@ interface CurrencyExchangeProps {
   displayedCurrencies: string[];
   loading: boolean;
   showResult: boolean;
+  onCurrencyRowClick: (index: number) => void;
 }
 
 const CurrencyExchange = ({
@@ -26,10 +28,11 @@ const CurrencyExchange = ({
   displayedCurrencies,
   loading,
   showResult,
+  onCurrencyRowClick,
 }: CurrencyExchangeProps) => {
   const numericAmount = parseFloat(amount) || 0;
 
-  const renderCurrencyRow = (code: string, isBase = false) => {
+  const renderCurrencyRow = (code: string, index: number, isBase = false) => {
     const value = isBase ? numericAmount : (rates ? numericAmount * (rates[code.toLowerCase()] || 0) : 0);
     const displayValue = isBase ? displayAmount : value;
     
@@ -40,7 +43,7 @@ const CurrencyExchange = ({
         name={currencyInfo[code.toLowerCase()] || ''}
         value={displayValue}
         isBase={isBase}
-        onClick={!isBase ? () => setBaseCurrency(code) : undefined}
+        onClick={isBase ? () => {} : () => onCurrencyRowClick(index)}
         showResult={isBase && showResult}
       />
     );
@@ -62,14 +65,14 @@ const CurrencyExchange = ({
 
   return (
     <div className="flex flex-col gap-2">
-      {renderCurrencyRow(baseCurrency, true)}
+      {renderCurrencyRow(baseCurrency, -1, true)}
       <hr className="border-border my-2" />
       {loading && rates === null
         ? Array.from({ length: 4 }).map((_, i) => renderSkeletonRow(i))
         : displayedCurrencies
             .filter(c => c !== baseCurrency)
             .slice(0,4)
-            .map(code => renderCurrencyRow(code))}
+            .map((code, index) => renderCurrencyRow(code, index))}
     </div>
   );
 };
