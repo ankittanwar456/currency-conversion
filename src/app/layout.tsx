@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'Neo Convert',
+  title: 'Currency Convert',
   description: 'A modern currency conversion app.',
 };
 

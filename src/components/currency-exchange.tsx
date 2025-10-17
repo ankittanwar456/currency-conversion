@@ -8,6 +8,7 @@ interface CurrencyExchangeProps {
   baseCurrency: string;
   setBaseCurrency: (currency: string) => void;
   amount: string;
+  displayAmount: string;
   rates: Rates | null;
   currencyInfo: Record<string, string>;
   displayedCurrencies: string[];
@@ -18,6 +19,7 @@ const CurrencyExchange = ({
   baseCurrency,
   setBaseCurrency,
   amount,
+  displayAmount,
   rates,
   currencyInfo,
   displayedCurrencies,
@@ -27,12 +29,14 @@ const CurrencyExchange = ({
 
   const renderCurrencyRow = (code: string, isBase = false) => {
     const value = isBase ? numericAmount : (rates ? numericAmount * (rates[code.toLowerCase()] || 0) : 0);
+    const displayValue = isBase ? displayAmount : value;
+    
     return (
       <CurrencyRow
         key={code}
         code={code}
-        name={currencyInfo[code.toLowerCase()] || 'Unknown Currency'}
-        value={value}
+        name={currencyInfo[code.toLowerCase()] || ''}
+        value={displayValue}
         isBase={isBase}
         onClick={!isBase ? () => setBaseCurrency(code) : undefined}
       />

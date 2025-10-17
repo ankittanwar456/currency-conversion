@@ -15,6 +15,25 @@ import { useToast } from '@/hooks/use-toast';
 
 const DEFAULT_CURRENCIES = ['EUR', 'JPY', 'GBP', 'AUD'];
 
+function evaluateExpression(expression: string): string {
+  try {
+    // Sanitize the expression to prevent security risks
+    const sanitizedExpression = expression.replace(/[^-()\d/*+.]/g, '');
+    
+    // Using Function constructor is safer than eval, but still needs caution
+    const result = new Function('return ' + sanitizedExpression)();
+
+    if (isNaN(result) || !isFinite(result)) {
+      return 'Error';
+    }
+    // Limit to a reasonable number of decimal places
+    return String(parseFloat(result.toFixed(10)));
+  } catch (error) {
+    return 'Error';
+  }
+}
+
+
 export default function Home() {
   const { toast } = useToast();
   const [amount, setAmount] = useState('1');
@@ -80,24 +99,31 @@ export default function Home() {
   };
 
   const handleSettingsSave = (newCurrencies: string[]) => {
-    setDisplayedCurrencies(newCurrencies);
+    const finalSelection = newCurrencies.filter(c => c && c !== 'none');
+    setDisplayedCurrencies(finalSelection);
   };
   
   const handleRefresh = () => {
     loadRates(baseCurrency);
   };
+  
+  const calculatedAmount = useMemo(() => {
+    if (/[+\-*/]/.test(amount) && !/e[+\-]/i.test(amount)) {
+      // It's an expression, but not scientific notation
+      const lastChar = amount[amount.length - 1];
+      if (/[+\-*/.]/.test(lastChar)) {
+        return evaluateExpression(amount.slice(0, -1));
+      }
+      return evaluateExpression(amount);
+    }
+    return amount;
+  }, [amount]);
 
-  const currencyInfo = useMemo(() => {
-    return allCurrencies.reduce((acc, curr) => {
-      acc[curr.code] = curr.name;
-      return acc;
-    }, {} as Record<string, string>);
-  }, [allCurrencies]);
 
   return (
     <div className="flex flex-col h-screen max-h-screen bg-background text-foreground max-w-md mx-auto">
       <header className="flex items-center justify-between p-4">
-        <h1 className="text-xl font-bold text-primary">Neo Convert</h1>
+        <h1 className="text-xl font-bold text-primary">Currency Convert</h1>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={handleRefresh} aria-label="Refresh rates">
             <RefreshCw className="h-5 w-5" />
@@ -117,9 +143,13 @@ export default function Home() {
           <CurrencyExchange
             baseCurrency={baseCurrency}
             setBaseCurrency={handleBaseCurrencyChange}
-            amount={amount}
+            amount={calculatedAmount}
+            displayAmount={amount}
             rates={rates}
-            currencyInfo={currencyInfo}
+            currencyInfo={allCurrencies.reduce((acc, curr) => {
+              acc[curr.code] = curr.name;
+              return acc;
+            }, {} as Record<string, string>)}
             displayedCurrencies={displayedCurrencies}
             loading={loading}
           />

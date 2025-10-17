@@ -8,16 +8,19 @@ import { Button } from './ui/button';
 interface CurrencyRowProps {
   code: string;
   name: string;
-  value: number;
+  value: number | string;
   isBase: boolean;
   onClick?: () => void;
 }
 
 const CurrencyRow = ({ code, name, value, isBase, onClick }: CurrencyRowProps) => {
-  const formattedValue = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: isBase ? 10 : 2,
-  }).format(value);
+  
+  const formattedValue = typeof value === 'number' 
+    ? new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: isBase ? 10 : 2,
+      }).format(value)
+    : value;
 
   const flagUrl = getFlagUrl(code);
 
@@ -27,8 +30,8 @@ const CurrencyRow = ({ code, name, value, isBase, onClick }: CurrencyRowProps) =
         isBase ? 'bg-secondary' : 'hover:bg-secondary/50',
         onClick && 'cursor-pointer'
       )}>
-      <div className="flex items-center gap-4">
-        <div className="relative h-10 w-10">
+      <div className="flex items-center gap-3">
+        <div className="relative h-10 w-10 shrink-0">
            <Image
             src={flagUrl}
             alt={`${code} flag`}
@@ -38,14 +41,14 @@ const CurrencyRow = ({ code, name, value, isBase, onClick }: CurrencyRowProps) =
             onError={(e) => { e.currentTarget.src = `https://flagsapi.com/US/flat/64.png`; e.currentTarget.style.backgroundColor = 'transparent' }}
           />
         </div>
-        <div>
+        <div className="flex flex-col items-start">
           <p className="font-bold text-lg">{code.toUpperCase()}</p>
-          <p className="text-sm text-muted-foreground">{name}</p>
+          {name && <p className="text-sm text-muted-foreground -mt-1">{name}</p>}
         </div>
       </div>
-      <div className="text-right">
+      <div className="text-right flex-shrink basis-1/2 overflow-hidden">
         <p className={cn(
-          "text-xl font-mono truncate",
+          "text-xl font-mono truncate text-right",
           isBase ? 'text-primary font-bold' : 'text-foreground'
         )}>
           {formattedValue}
