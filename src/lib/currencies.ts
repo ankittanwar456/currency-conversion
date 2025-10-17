@@ -84,14 +84,14 @@ export function getFlagUrl(currencyCode: string): string {
     ANG: 'CW',
     XCD: 'AG',
     XPF: 'PF',
-    XAF: 'CM', // Central African CFA Franc, Cameroon as representative
-    XOF: 'SN', // West African CFA franc, Senegal as representative
-    XCG: 'CW', // Caribbean Guilder, Curaçao as representative
-    XDR: 'UN', // Special Drawing Right, UN as representative
-    XAU: 'UN', // Gold, UN as representative
-    XAG: 'UN', // Silver, UN as representative
-    XPT: 'UN', // Platinum, UN as representative
-    XPD: 'UN', // Palladium, UN as representative
+    XAF: 'CM',
+    XOF: 'SN',
+    XCG: 'CW',
+    XDR: 'US', 
+    XAU: 'US',
+    XAG: 'US',
+    XPT: 'US',
+    XPD: 'US',
   };
 
   if (mappings[currencyCode.toUpperCase()]) {
