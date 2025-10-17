@@ -31,10 +31,11 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Accept licenses and install build tools
-        shell: bash
+        shell: pwsh
         run: |
-          yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "build-tools;34.0.0" "platforms;android-34"
+          $sdk = "$Env:ANDROID_HOME\cmdline-tools\latest\bin\sdkmanager.bat"
+          & $sdk --licenses
+          & $sdk "platform-tools" "build-tools;34.0.0" "platforms;android-34"
 
       - name: Add Android platform (if not present) and sync
         run: |
