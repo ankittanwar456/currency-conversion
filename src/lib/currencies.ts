@@ -1,3 +1,4 @@
+
 export interface Currency {
   code: string;
   name: string;
@@ -36,7 +37,7 @@ export function getFlagUrl(currencyCode: string): string {
   
   // Manual mapping for special cases
   const mappings: Record<string, string> = {
-    EUR: 'EU',
+    EUR: 'DE',
     USD: 'US',
     GBP: 'GB',
     JPY: 'JP',
