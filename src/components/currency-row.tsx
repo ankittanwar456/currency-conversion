@@ -1,0 +1,64 @@
+'use client';
+
+import Image from 'next/image';
+import { getFlagUrl } from '@/lib/currencies';
+import { cn } from '@/lib/utils';
+import { Button } from './ui/button';
+
+interface CurrencyRowProps {
+  code: string;
+  name: string;
+  value: number;
+  isBase: boolean;
+  onClick?: () => void;
+}
+
+const CurrencyRow = ({ code, name, value, isBase, onClick }: CurrencyRowProps) => {
+  const formattedValue = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: isBase ? 10 : 2,
+  }).format(value);
+
+  const flagUrl = getFlagUrl(code);
+
+  const content = (
+    <div className={cn(
+        "flex items-center justify-between w-full p-3 my-1.5 rounded-lg transition-colors",
+        isBase ? 'bg-secondary' : 'hover:bg-secondary/50',
+        onClick && 'cursor-pointer'
+      )}>
+      <div className="flex items-center gap-4">
+        <div className="relative h-10 w-10">
+           <Image
+            src={flagUrl}
+            alt={`${code} flag`}
+            width={40}
+            height={40}
+            className="rounded-full object-cover bg-muted"
+            onError={(e) => { e.currentTarget.src = `https://flagsapi.com/US/flat/64.png`; e.currentTarget.style.backgroundColor = 'transparent' }}
+          />
+        </div>
+        <div>
+          <p className="font-bold text-lg">{code.toUpperCase()}</p>
+          <p className="text-sm text-muted-foreground">{name}</p>
+        </div>
+      </div>
+      <div className="text-right">
+        <p className={cn(
+          "text-xl font-mono truncate",
+          isBase ? 'text-primary font-bold' : 'text-foreground'
+        )}>
+          {formattedValue}
+        </p>
+      </div>
+    </div>
+  );
+  
+  if (onClick) {
+    return <Button variant="ghost" className="h-auto p-0 w-full" onClick={onClick}>{content}</Button>
+  }
+
+  return content;
+};
+
+export default CurrencyRow;
