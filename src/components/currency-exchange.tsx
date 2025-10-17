@@ -13,6 +13,7 @@ interface CurrencyExchangeProps {
   currencyInfo: Record<string, string>;
   displayedCurrencies: string[];
   loading: boolean;
+  showResult: boolean;
 }
 
 const CurrencyExchange = ({
@@ -23,7 +24,8 @@ const CurrencyExchange = ({
   rates,
   currencyInfo,
   displayedCurrencies,
-  loading
+  loading,
+  showResult,
 }: CurrencyExchangeProps) => {
   const numericAmount = parseFloat(amount) || 0;
 
@@ -39,6 +41,7 @@ const CurrencyExchange = ({
         value={displayValue}
         isBase={isBase}
         onClick={!isBase ? () => setBaseCurrency(code) : undefined}
+        showResult={isBase && showResult}
       />
     );
   };

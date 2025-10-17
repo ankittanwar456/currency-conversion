@@ -17,8 +17,9 @@ const DEFAULT_CURRENCIES = ['EUR', 'JPY', 'GBP', 'AUD'];
 
 function evaluateExpression(expression: string): string {
   try {
-    // Sanitize the expression to prevent security risks
-    const sanitizedExpression = expression.replace(/[^-()\d/*+.]/g, '');
+    // Sanitize the expression to prevent security risks and handle percentage
+    const sanitizedExpression = expression
+      .replace(/[^-()\d/*+.]/g, '');
     
     // Using Function constructor is safer than eval, but still needs caution
     const result = new Function('return ' + sanitizedExpression)();
@@ -44,6 +45,8 @@ export default function Home() {
   const [rates, setRates] = useState<Rates | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [showResult, setShowResult] = useState(false);
+
 
   const loadRates = useCallback(async (base: string) => {
     try {
@@ -96,6 +99,7 @@ export default function Home() {
       return newDisplayed.slice(0, 4);
     });
     setAmount('1');
+    setShowResult(false);
   };
 
   const handleSettingsSave = (newCurrencies: string[]) => {
@@ -107,18 +111,69 @@ export default function Home() {
     loadRates(baseCurrency);
   };
   
+  const handleCalculatorInput = (key: string) => {
+    if (showResult && /[\d.]/.test(key)) {
+      setAmount(key);
+      setShowResult(false);
+      return;
+    }
+
+    setShowResult(false);
+    const lastChar = amount.slice(-1);
+    const isOperator = (char: string) => ['+', '-', '*', '/'].includes(char);
+
+    if (key === 'backspace') {
+      if (amount.length > 1) {
+        setAmount(amount.slice(0, -1));
+      } else {
+        setAmount('0');
+      }
+    } else if (key === 'C') {
+        setAmount('0');
+    } else if (key === '%') {
+        setAmount(prev => String(parseFloat(prev) / 100));
+        setShowResult(true);
+    } else if (isOperator(key)) {
+        if (!isOperator(lastChar) && lastChar !== '.') {
+            setAmount(amount + key);
+        } else if (isOperator(lastChar)) {
+            setAmount(amount.slice(0, -1) + key);
+        }
+    } else if (key === '.') {
+      const parts = amount.split(/[+\-*/]/);
+      const lastPart = parts[parts.length - 1];
+      if (!lastPart.includes('.')) {
+        setAmount(amount + '.');
+      }
+    } else { // It's a number
+      if (amount === '0') {
+        setAmount(key);
+      } else {
+        setAmount(amount + key);
+      }
+    }
+  };
+
+  const handleEquals = () => {
+    const result = evaluateExpression(amount);
+    setAmount(result);
+    setShowResult(true);
+  }
+
   const calculatedAmount = useMemo(() => {
+    if (showResult) {
+      return amount;
+    }
     if (/[+\-*/]/.test(amount) && !/e[+\-]/i.test(amount)) {
-      // It's an expression, but not scientific notation
       const lastChar = amount[amount.length - 1];
       if (/[+\-*/.]/.test(lastChar)) {
-        return evaluateExpression(amount.slice(0, -1));
+        // Don't evaluate if the expression is incomplete
+        return '...';
       }
       return evaluateExpression(amount);
     }
     return amount;
-  }, [amount]);
-
+  }, [amount, showResult]);
 
   return (
     <div className="flex flex-col h-screen max-h-screen bg-background text-foreground max-w-md mx-auto">
@@ -152,12 +207,13 @@ export default function Home() {
             }, {} as Record<string, string>)}
             displayedCurrencies={displayedCurrencies}
             loading={loading}
+            showResult={showResult}
           />
         )}
       </main>
 
       <footer className="mt-auto">
-        <Calculator onInput={setAmount} value={amount} />
+        <Calculator onInput={handleCalculatorInput} onEquals={handleEquals} value={amount} />
       </footer>
 
       <SettingsDialog

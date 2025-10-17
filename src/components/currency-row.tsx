@@ -11,14 +11,15 @@ interface CurrencyRowProps {
   value: number | string;
   isBase: boolean;
   onClick?: () => void;
+  showResult?: boolean;
 }
 
-const CurrencyRow = ({ code, name, value, isBase, onClick }: CurrencyRowProps) => {
+const CurrencyRow = ({ code, name, value, isBase, onClick, showResult }: CurrencyRowProps) => {
   
   const formattedValue = typeof value === 'number' 
     ? new Intl.NumberFormat('en-US', {
         minimumFractionDigits: 2,
-        maximumFractionDigits: isBase ? 10 : 2,
+        maximumFractionDigits: 2,
       }).format(value)
     : value;
 
@@ -49,7 +50,8 @@ const CurrencyRow = ({ code, name, value, isBase, onClick }: CurrencyRowProps) =
       <div className="text-right flex-shrink basis-1/2 overflow-hidden">
         <p className={cn(
           "text-xl font-mono truncate text-right",
-          isBase ? 'text-primary font-bold' : 'text-foreground'
+          isBase ? 'text-primary font-bold' : 'text-foreground',
+          isBase && showResult && 'text-2xl'
         )}>
           {formattedValue}
         </p>
