@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build Next.js (static export via output: export)
+      - name: "Build Next.js (static export via output: export)"
         run: npx next build
 
       - name: Install Capacitor CLI
