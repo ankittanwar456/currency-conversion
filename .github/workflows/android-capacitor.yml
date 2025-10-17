@@ -21,10 +21,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build Next.js and export static site
-        run: |
-          npm run build
-          npx next export
+      - name: Build Next.js (static export via output: export)
+        run: npx next build
 
       - name: Install Capacitor CLI
         run: npm i -D @capacitor/cli
