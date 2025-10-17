@@ -46,8 +46,6 @@ export function getFlagUrl(currencyCode: string): string {
     CHF: 'CH',
     CNY: 'CN',
     INR: 'IN',
-    BTC: 'BTC',
-    ETH: 'ETH',
     HKD: 'HK',
     SGD: 'SG',
     SEK: 'SE',
@@ -66,10 +64,6 @@ export function getFlagUrl(currencyCode: string): string {
 
   if (mappings[currencyCode.toUpperCase()]) {
     countryCode = mappings[currencyCode.toUpperCase()];
-  }
-  
-  if (countryCode === 'BT' && currencyCode.toUpperCase() === 'BTC') {
-     return `https://upload.wikimedia.org/wikipedia/commons/4/46/Bitcoin.svg`;
   }
   
   return `https://flagsapi.com/${countryCode.toUpperCase()}/flat/64.png`;
