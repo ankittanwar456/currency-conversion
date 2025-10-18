@@ -4,42 +4,42 @@
 import { useState, useEffect, useCallback } from 'react';
 
 function usePersistentState<T>(key: string, defaultValue: T): [T, (value: T | ((prev: T) => T)) => void] {
+  const isBrowser = typeof window !== 'undefined';
+
   const [state, setState] = useState<T>(() => {
+    if (!isBrowser) return defaultValue;
     try {
-      const storedValue = localStorage.getItem(key);
+      const storedValue = window.localStorage.getItem(key);
       if (storedValue) {
-        // Handle cases where the stored value is not a valid JSON string (e.g., just "USD")
         if (storedValue.startsWith('"') && storedValue.endsWith('"')) {
           return JSON.parse(storedValue);
         }
-        // For array-like strings that are not valid JSON
         if (storedValue.startsWith('[') && storedValue.endsWith(']')) {
-             try {
-                return JSON.parse(storedValue);
-            } catch (e) {
-                // It might not be a valid JSON array, so return default.
-                return defaultValue;
-            }
+          try {
+            return JSON.parse(storedValue);
+          } catch {
+            return defaultValue;
+          }
         }
-        // If it is not a JSON string, but a plain string, it might be the value itself for simple types.
         if (typeof defaultValue === 'string' && !storedValue.startsWith('{') && !storedValue.startsWith('[')) {
-            return storedValue as unknown as T;
+          return storedValue as unknown as T;
         }
         return JSON.parse(storedValue);
       }
-    } catch (error) {
-      console.error(`Error reading from localStorage for key "${key}" on initial state. Using default.`, error);
+    } catch {
+      // Silent fallback to default on client
     }
     return defaultValue;
   });
 
   useEffect(() => {
+    if (!isBrowser) return;
     try {
-      localStorage.setItem(key, JSON.stringify(state));
-    } catch (error) {
-      console.error(`Error writing to localStorage for key "${key}":`, error);
+      window.localStorage.setItem(key, JSON.stringify(state));
+    } catch {
+      // Silent on write errors
     }
-  }, [key, state]);
+  }, [isBrowser, key, state]);
 
   const setValue = useCallback((value: T | ((prev: T) => T)) => {
     setState((prev: T) => (typeof value === 'function' ? (value as (prev: T) => T)(prev) : value));
