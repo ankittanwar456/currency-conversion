@@ -107,8 +107,7 @@ export default function Home() {
             title: "Duplicate Currency",
             description: `${newCurrency} is already displayed.`,
         });
-        setSelectingCurrencyIndex(null);
-        setIsAddingCurrency(false);
+        // Don't close the selection screen on duplicate toast
         return;
     }
 
@@ -121,7 +120,17 @@ export default function Home() {
         if (newCurrency) {
             newDisplayedCurrencies[selectingCurrencyIndex] = newCurrency;
         } else {
-            newDisplayedCurrencies.splice(selectingCurrencyIndex, 1);
+            // Only allow disabling if there are more than 3 currencies displayed
+            if (displayedCurrencies.length > 3) {
+                newDisplayedCurrencies.splice(selectingCurrencyIndex, 1);
+            } else {
+                toast({
+                    variant: "destructive",
+                    title: "Cannot Disable",
+                    description: "You must have at least 3 currencies displayed.",
+                });
+                return; // Don't close the selection
+            }
         }
         setDisplayedCurrencies(newDisplayedCurrencies);
     }
