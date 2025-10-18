@@ -3,10 +3,13 @@ name: android-capacitor
 on:
   push:
     branches: [ main ]
+    tags: [ 'v*' ]
   pull_request:
 
 jobs:
   build-android:
+    permissions:
+      contents: write
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -23,6 +26,10 @@ jobs:
 
       - name: "Build Next.js (static export via output: export)"
         run: npx next build
+
+      - name: Generate Capacitor assets (Android)
+        run: npx @capacitor/assets generate --android
+        # expects resources/icon.png to exist in the repo
 
       - name: Install Capacitor CLI
         run: npm i -D @capacitor/cli
@@ -50,3 +57,11 @@ jobs:
         with:
           name: app-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Create GitHub Release (attach APK)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+          prerelease: true
+          draft: false
