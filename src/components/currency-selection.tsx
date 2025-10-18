@@ -88,7 +88,11 @@ export default function CurrencySelection({
                   "w-full justify-start h-auto p-3",
                   isDisabled && "opacity-50 cursor-not-allowed"
                 )}
-                onClick={() => onSelect(currency.code)}
+                onClick={() => {
+                  if (!isDisabled) {
+                    onSelect(currency.code)
+                  }
+                }}
                 disabled={isDisabled}
               >
                 <div className="flex items-center gap-4">
@@ -113,5 +117,3 @@ export default function CurrencySelection({
     </div>
   );
 }
-
-    
