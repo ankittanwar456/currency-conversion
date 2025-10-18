@@ -50,31 +50,32 @@ const CurrencyExchange = ({
   };
   
   const renderSkeletonRow = (key: number) => (
-    <div key={key} className="flex items-center justify-between p-3 my-1.5 rounded-lg">
-      <div className="flex items-center gap-4">
-        <Skeleton className="h-10 w-10 rounded-full" />
+    <div key={key} className="flex items-center justify-between p-2 my-1 rounded-lg">
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-8 w-8 rounded-full" />
         <div>
-          <Skeleton className="h-5 w-12" />
-          <Skeleton className="h-4 w-24 mt-1" />
+          <Skeleton className="h-4 w-10" />
+          <Skeleton className="h-3 w-20 mt-1" />
         </div>
       </div>
-      <Skeleton className="h-6 w-28" />
+      <Skeleton className="h-5 w-24" />
     </div>
   );
 
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-1">
       {renderCurrencyRow(baseCurrency, -1, true)}
-      <hr className="border-border my-2" />
+      <hr className="border-border my-1" />
       {loading && rates === null
-        ? Array.from({ length: 4 }).map((_, i) => renderSkeletonRow(i))
+        ? Array.from({ length: displayedCurrencies.length || 4 }).map((_, i) => renderSkeletonRow(i))
         : displayedCurrencies
             .filter(c => c !== baseCurrency)
-            .slice(0,4)
             .map((code, index) => renderCurrencyRow(code, index))}
     </div>
   );
 };
 
 export default CurrencyExchange;
+
+    

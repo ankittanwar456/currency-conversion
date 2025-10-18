@@ -28,22 +28,20 @@ const CurrencyRow = ({ code, name, value, isBase, onClick, showResult }: Currenc
 
   const handleImageError = () => {
     console.error(`Failed to load flag for currency: ${code}. URL: ${flagUrl}`);
-    // The onError of the Image tag will fall back to the default.
   }
 
-  const content = (
+  return (
     <div className={cn(
-        "flex items-center justify-between w-full p-3 my-1.5 rounded-lg transition-colors",
-        isBase ? 'bg-secondary' : 'hover:bg-secondary/50',
-        onClick && !isBase && 'cursor-pointer'
+        "flex items-center justify-between w-full p-2 my-1 rounded-lg transition-colors",
+        isBase ? 'bg-secondary' : 'hover:bg-secondary/50'
       )}>
-      <div className="flex items-center gap-4">
-        <div className="relative h-10 w-10 shrink-0">
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-full" onClick={!isBase ? onClick : undefined} aria-label={`Change ${code}`}>
            <Image
             src={flagUrl}
             alt={`${code} flag`}
-            width={40}
-            height={40}
+            width={32}
+            height={32}
             className="rounded-full object-cover bg-muted"
             onError={(e) => { 
               handleImageError();
@@ -51,29 +49,25 @@ const CurrencyRow = ({ code, name, value, isBase, onClick, showResult }: Currenc
               e.currentTarget.style.backgroundColor = 'transparent';
             }}
           />
-        </div>
+        </Button>
         <div className="flex flex-col items-start">
-          <p className="font-bold text-lg">{code.toUpperCase()}</p>
-          <p className="text-sm text-muted-foreground -mt-1">{name || ' '}</p>
+          <p className="font-bold text-md">{code.toUpperCase()}</p>
+          <p className="text-xs text-muted-foreground -mt-1">{name || ' '}</p>
         </div>
       </div>
       <div className="text-right flex-shrink basis-1/2 overflow-hidden">
         <p className={cn(
-          "text-xl font-mono truncate text-right",
+          "text-lg font-mono truncate text-right",
           isBase ? 'text-primary font-bold' : 'text-foreground',
-          isBase && showResult && 'text-2xl'
+          isBase && showResult && 'text-xl'
         )}>
           {formattedValue}
         </p>
       </div>
     </div>
   );
-  
-  if (onClick && !isBase) {
-    return <Button variant="ghost" className="h-auto p-0 w-full" onClick={onClick}>{content}</Button>
-  }
-
-  return content;
 };
 
 export default CurrencyRow;
+
+    

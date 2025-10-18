@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, PlusCircle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import Calculator from '@/components/calculator';
@@ -43,6 +43,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showResult, setShowResult] = useState(false);
   const [selectingCurrencyIndex, setSelectingCurrencyIndex] = useState<number | null>(null);
+  const [isAddingCurrency, setIsAddingCurrency] = useState(false);
 
 
   const loadRates = useCallback(async (base: string) => {
@@ -93,35 +94,40 @@ export default function Home() {
             newDisplayed.push(oldBase);
          }
       }
-      return newDisplayed.slice(0, 4);
+      return newDisplayed;
     });
     setAmount('1');
     setShowResult(false);
   };
 
   const handleCurrencySelection = (newCurrency: string | null) => {
-    if (selectingCurrencyIndex === null) return;
-  
-    const newDisplayedCurrencies = [...displayedCurrencies];
-    if (newCurrency) {
-      // Prevent adding duplicate currencies
-      if (displayedCurrencies.includes(newCurrency) && displayedCurrencies[selectingCurrencyIndex] !== newCurrency) {
+    if (newCurrency && (displayedCurrencies.includes(newCurrency) || baseCurrency === newCurrency)) {
         toast({
-          variant: "destructive",
-          title: "Duplicate Currency",
-          description: `${newCurrency} is already displayed.`,
+            variant: "destructive",
+            title: "Duplicate Currency",
+            description: `${newCurrency} is already displayed.`,
         });
         setSelectingCurrencyIndex(null);
+        setIsAddingCurrency(false);
         return;
-      }
-      newDisplayedCurrencies[selectingCurrencyIndex] = newCurrency;
-    } else {
-      // "Disable" was chosen
-      newDisplayedCurrencies.splice(selectingCurrencyIndex, 1);
     }
-  
-    setDisplayedCurrencies(newDisplayedCurrencies);
+
+    if (isAddingCurrency) {
+        if (newCurrency) {
+            setDisplayedCurrencies([...displayedCurrencies, newCurrency]);
+        }
+    } else if (selectingCurrencyIndex !== null) {
+        const newDisplayedCurrencies = [...displayedCurrencies];
+        if (newCurrency) {
+            newDisplayedCurrencies[selectingCurrencyIndex] = newCurrency;
+        } else {
+            newDisplayedCurrencies.splice(selectingCurrencyIndex, 1);
+        }
+        setDisplayedCurrencies(newDisplayedCurrencies);
+    }
+
     setSelectingCurrencyIndex(null);
+    setIsAddingCurrency(false);
   };
   
   const handleRefresh = () => {
@@ -130,6 +136,12 @@ export default function Home() {
 
   const handleCurrencyRowClick = (index: number) => {
     setSelectingCurrencyIndex(index);
+    setIsAddingCurrency(false);
+  }
+
+  const handleAddCurrencyClick = () => {
+    setIsAddingCurrency(true);
+    setSelectingCurrencyIndex(null); 
   }
   
   const handleCalculatorInput = (key: string) => {
@@ -195,13 +207,18 @@ export default function Home() {
     return amount;
   }, [amount, showResult]);
 
-  if (selectingCurrencyIndex !== null) {
+  if (selectingCurrencyIndex !== null || isAddingCurrency) {
     return (
       <CurrencySelection
         allCurrencies={allCurrencies}
+        displayedCurrencies={displayedCurrencies}
         baseCurrency={baseCurrency}
         onSelect={handleCurrencySelection}
-        onCancel={() => setSelectingCurrencyIndex(null)}
+        onCancel={() => {
+          setSelectingCurrencyIndex(null);
+          setIsAddingCurrency(false);
+        }}
+        isAdding={isAddingCurrency}
       />
     );
   }
@@ -223,21 +240,29 @@ export default function Home() {
             <p className="text-muted-foreground">Loading currencies...</p>
           </div>
         ) : (
-          <CurrencyExchange
-            baseCurrency={baseCurrency}
-            setBaseCurrency={handleBaseCurrencyChange}
-            amount={calculatedAmount}
-            displayAmount={amount}
-            rates={rates}
-            currencyInfo={allCurrencies.reduce((acc, curr) => {
-              acc[curr.code] = curr.name;
-              return acc;
-            }, {} as Record<string, string>)}
-            displayedCurrencies={displayedCurrencies}
-            loading={loading}
-            showResult={showResult}
-            onCurrencyRowClick={handleCurrencyRowClick}
-          />
+          <>
+            <CurrencyExchange
+              baseCurrency={baseCurrency}
+              setBaseCurrency={handleBaseCurrencyChange}
+              amount={calculatedAmount}
+              displayAmount={amount}
+              rates={rates}
+              currencyInfo={allCurrencies.reduce((acc, curr) => {
+                acc[curr.code] = curr.name;
+                return acc;
+              }, {} as Record<string, string>)}
+              displayedCurrencies={displayedCurrencies}
+              loading={loading}
+              showResult={showResult}
+              onCurrencyRowClick={handleCurrencyRowClick}
+            />
+            <div className="my-4">
+                <Button variant="outline" className="w-full h-12" onClick={handleAddCurrencyClick}>
+                    <PlusCircle className="mr-2 h-5 w-5" />
+                    Add Currency
+                </Button>
+            </div>
+          </>
         )}
       </main>
 
@@ -247,3 +272,5 @@ export default function Home() {
     </div>
   );
 }
+
+    
