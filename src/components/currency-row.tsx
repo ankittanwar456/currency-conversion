@@ -11,11 +11,12 @@ interface CurrencyRowProps {
   name: string;
   value: number | string;
   isBase: boolean;
-  onClick?: () => void;
+  onChangeClick?: () => void;
+  onSelectClick?: () => void;
   showResult?: boolean;
 }
 
-const CurrencyRow = ({ code, name, value, isBase, onClick, showResult }: CurrencyRowProps) => {
+const CurrencyRow = ({ code, name, value, isBase, onChangeClick, onSelectClick, showResult }: CurrencyRowProps) => {
   
   const formattedValue = typeof value === 'number' 
     ? new Intl.NumberFormat('en-US', {
@@ -31,13 +32,24 @@ const CurrencyRow = ({ code, name, value, isBase, onClick, showResult }: Currenc
   }
 
   return (
-    <div className={cn(
+    <div
+      className={cn(
         "flex items-center justify-between w-full p-2 my-1 rounded-lg transition-colors",
         isBase ? 'bg-secondary' : 'hover:bg-secondary/50'
-      )}>
+      )}
+      onClick={!isBase ? onSelectClick : undefined}
+      role={!isBase ? 'button' : undefined}
+      tabIndex={!isBase ? 0 : -1}
+    >
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-full" onClick={!isBase ? onClick : undefined} aria-label={`Change ${code}`}>
-           <Image
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-10 w-10 shrink-0 rounded-full"
+          onClick={!isBase ? (e) => { e.stopPropagation(); onChangeClick && onChangeClick(); } : undefined}
+          aria-label={`Change ${code}`}
+        >
+          <Image
             src={flagUrl}
             alt={`${code} flag`}
             width={32}
@@ -69,5 +81,3 @@ const CurrencyRow = ({ code, name, value, isBase, onClick, showResult }: Currenc
 };
 
 export default CurrencyRow;
-
-    

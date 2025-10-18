@@ -82,9 +82,11 @@ export default function Home() {
   }, [baseCurrency, loadRates, toast]);
 
   const handleBaseCurrencyChange = (newBase: string) => {
+    console.log('[Page] Change base currency requested', { newBase, oldBase: baseCurrency });
     const oldBase = baseCurrency;
     setBaseCurrency(newBase);
     setDisplayedCurrencies(prev => {
+      console.log('[Page] Updating displayed currencies after base change', { prev, newBase, oldBase });
       const newDisplayed = prev.filter(c => c !== newBase);
       if (!newDisplayed.includes(oldBase) && oldBase !== newBase) {
          const oldBaseIndex = displayedCurrencies.indexOf(newBase);
@@ -94,6 +96,7 @@ export default function Home() {
             newDisplayed.push(oldBase);
          }
       }
+      console.log('[Page] New displayed after base change', newDisplayed);
       return newDisplayed;
     });
     setAmount('1');
@@ -101,6 +104,13 @@ export default function Home() {
   };
 
   const handleCurrencySelection = (newCurrency: string | null) => {
+    console.log('[Page] handleCurrencySelection called', {
+      newCurrency,
+      isAddingCurrency,
+      selectingCurrencyIndex,
+      baseCurrency,
+      displayedCurrencies,
+    });
     // Prevent selecting base currency anywhere
     if (newCurrency && baseCurrency === newCurrency) {
       toast({
@@ -108,6 +118,7 @@ export default function Home() {
         title: "Duplicate Currency",
         description: `${newCurrency} is already displayed as base.`,
       });
+      console.log('[Page] Selection blocked: tried to select base currency');
       return;
     }
 
@@ -120,9 +131,12 @@ export default function Home() {
             title: "Duplicate Currency",
             description: `${newCurrency} is already displayed.`,
           });
+          console.log('[Page] Add blocked: duplicate currency', { newCurrency });
           return;
         }
-        setDisplayedCurrencies([...displayedCurrencies, newCurrency]);
+        const next = [...displayedCurrencies, newCurrency];
+        console.log('[Page] Adding new currency', { newCurrency, next });
+        setDisplayedCurrencies(next);
       }
     } else if (selectingCurrencyIndex !== null) {
       // Editing an existing slot
@@ -134,25 +148,30 @@ export default function Home() {
           const tmp = newDisplayedCurrencies[selectingCurrencyIndex];
           newDisplayedCurrencies[selectingCurrencyIndex] = newDisplayedCurrencies[existingIndex];
           newDisplayedCurrencies[existingIndex] = tmp;
+          console.log('[Page] Swapped currencies', { selectingCurrencyIndex, existingIndex, result: newDisplayedCurrencies });
         } else {
           newDisplayedCurrencies[selectingCurrencyIndex] = newCurrency;
+          console.log('[Page] Replaced currency in slot', { selectingCurrencyIndex, newCurrency, result: newDisplayedCurrencies });
         }
       } else {
         // Disable this slot only if more than 3 remain
         if (displayedCurrencies.length > 3) {
           newDisplayedCurrencies.splice(selectingCurrencyIndex, 1);
+          console.log('[Page] Disabled currency slot', { selectingCurrencyIndex, result: newDisplayedCurrencies });
         } else {
           toast({
             variant: "destructive",
             title: "Cannot Disable",
             description: "You must have at least 3 currencies displayed.",
           });
+          console.log('[Page] Disable blocked: minimum slots');
           return; // Don't close the selection
         }
       }
       setDisplayedCurrencies(newDisplayedCurrencies);
     }
 
+    console.log('[Page] Closing selection overlay');
     setSelectingCurrencyIndex(null);
     setIsAddingCurrency(false);
   };
@@ -162,11 +181,13 @@ export default function Home() {
   };
 
   const handleCurrencyRowClick = (index: number) => {
+    console.log('[Page] Currency row clicked (open selection)', { index, currency: displayedCurrencies[index] });
     setSelectingCurrencyIndex(index);
     setIsAddingCurrency(false);
   }
 
   const handleAddCurrencyClick = () => {
+    console.log('[Page] Add Currency clicked (open selection)');
     setIsAddingCurrency(true);
     setSelectingCurrencyIndex(null); 
   }

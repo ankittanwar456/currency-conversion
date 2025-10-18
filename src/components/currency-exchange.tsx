@@ -43,7 +43,8 @@ const CurrencyExchange = ({
         name={currencyInfo[code.toLowerCase()] || ''}
         value={displayValue}
         isBase={isBase}
-        onClick={isBase ? () => {} : () => onCurrencyRowClick(index)}
+        onChangeClick={isBase ? undefined : () => onCurrencyRowClick(index)}
+        onSelectClick={isBase ? undefined : () => setBaseCurrency(code)}
         showResult={isBase && showResult}
       />
     );
