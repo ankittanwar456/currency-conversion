@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-function usePersistentState<T>(key: string, defaultValue: T): [T, (value: T) => void] {
+function usePersistentState<T>(key: string, defaultValue: T): [T, (value: T | ((prev: T) => T)) => void] {
   const [state, setState] = useState<T>(() => {
     try {
       const storedValue = localStorage.getItem(key);
@@ -41,8 +41,8 @@ function usePersistentState<T>(key: string, defaultValue: T): [T, (value: T) => 
     }
   }, [key, state]);
 
-  const setValue = useCallback((value: T) => {
-    setState(value);
+  const setValue = useCallback((value: T | ((prev: T) => T)) => {
+    setState((prev: T) => (typeof value === 'function' ? (value as (prev: T) => T)(prev) : value));
   }, []);
 
   return [state, setValue];

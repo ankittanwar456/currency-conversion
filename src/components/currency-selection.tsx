@@ -17,6 +17,7 @@ interface CurrencySelectionProps {
   onSelect: (currencyCode: string | null) => void;
   onCancel: () => void;
   isAdding: boolean;
+  editingIndex: number | null;
 }
 
 export default function CurrencySelection({
@@ -26,6 +27,7 @@ export default function CurrencySelection({
   onSelect,
   onCancel,
   isAdding,
+  editingIndex,
 }: CurrencySelectionProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -35,7 +37,15 @@ export default function CurrencySelection({
       currency.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const disabledCurrencies = new Set([baseCurrency, ...displayedCurrencies]);
+  let disabledCurrencies = new Set<string>();
+  if (isAdding) {
+    disabledCurrencies = new Set([baseCurrency, ...displayedCurrencies]);
+  } else if (editingIndex !== null) {
+    const current = displayedCurrencies[editingIndex];
+    disabledCurrencies = new Set([baseCurrency, ...displayedCurrencies.filter(c => c !== current)]);
+  } else {
+    disabledCurrencies = new Set([baseCurrency, ...displayedCurrencies]);
+  }
 
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col h-screen max-h-screen max-w-md mx-auto">

@@ -101,38 +101,56 @@ export default function Home() {
   };
 
   const handleCurrencySelection = (newCurrency: string | null) => {
-    if (newCurrency && (displayedCurrencies.includes(newCurrency) || baseCurrency === newCurrency)) {
-        toast({
-            variant: "destructive",
-            title: "Duplicate Currency",
-            description: `${newCurrency} is already displayed.`,
-        });
-        // Don't close the selection screen on duplicate toast
-        return;
+    // Prevent selecting base currency anywhere
+    if (newCurrency && baseCurrency === newCurrency) {
+      toast({
+        variant: "destructive",
+        title: "Duplicate Currency",
+        description: `${newCurrency} is already displayed as base.`,
+      });
+      return;
     }
 
     if (isAddingCurrency) {
-        if (newCurrency) {
-            setDisplayedCurrencies([...displayedCurrencies, newCurrency]);
+      // Adding a new currency: disallow duplicates
+      if (newCurrency) {
+        if (displayedCurrencies.includes(newCurrency)) {
+          toast({
+            variant: "destructive",
+            title: "Duplicate Currency",
+            description: `${newCurrency} is already displayed.`,
+          });
+          return;
         }
+        setDisplayedCurrencies([...displayedCurrencies, newCurrency]);
+      }
     } else if (selectingCurrencyIndex !== null) {
-        const newDisplayedCurrencies = [...displayedCurrencies];
-        if (newCurrency) {
-            newDisplayedCurrencies[selectingCurrencyIndex] = newCurrency;
+      // Editing an existing slot
+      const newDisplayedCurrencies = [...displayedCurrencies];
+      if (newCurrency) {
+        const existingIndex = displayedCurrencies.indexOf(newCurrency);
+        if (existingIndex !== -1 && existingIndex !== selectingCurrencyIndex) {
+          // Swap with the existing currency to avoid duplicates
+          const tmp = newDisplayedCurrencies[selectingCurrencyIndex];
+          newDisplayedCurrencies[selectingCurrencyIndex] = newDisplayedCurrencies[existingIndex];
+          newDisplayedCurrencies[existingIndex] = tmp;
         } else {
-            // Only allow disabling if there are more than 3 currencies displayed
-            if (displayedCurrencies.length > 3) {
-                newDisplayedCurrencies.splice(selectingCurrencyIndex, 1);
-            } else {
-                toast({
-                    variant: "destructive",
-                    title: "Cannot Disable",
-                    description: "You must have at least 3 currencies displayed.",
-                });
-                return; // Don't close the selection
-            }
+          newDisplayedCurrencies[selectingCurrencyIndex] = newCurrency;
         }
-        setDisplayedCurrencies(newDisplayedCurrencies);
+      } else {
+        // Disable this slot only if more than 3 remain
+        if (displayedCurrencies.length > 3) {
+          newDisplayedCurrencies.splice(selectingCurrencyIndex, 1);
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Cannot Disable",
+            description: "You must have at least 3 currencies displayed.",
+          });
+          return; // Don't close the selection
+        }
+      }
+      setDisplayedCurrencies(newDisplayedCurrencies);
     }
 
     setSelectingCurrencyIndex(null);
@@ -228,6 +246,7 @@ export default function Home() {
           setIsAddingCurrency(false);
         }}
         isAdding={isAddingCurrency}
+        editingIndex={selectingCurrencyIndex}
       />
     );
   }
