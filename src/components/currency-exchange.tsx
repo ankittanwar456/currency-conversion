@@ -4,7 +4,7 @@
 import type { Rates } from '@/lib/currencies';
 import CurrencyRow from './currency-row';
 import { Skeleton } from './ui/skeleton';
-import { Droppable, Draggable } from 'react-beautiful-dnd';
+import { Droppable, Draggable } from '@hello-pangea/dnd';
 
 interface CurrencyExchangeProps {
   baseCurrency: string;
@@ -84,7 +84,7 @@ const CurrencyExchange = ({
     <Droppable droppableId="currencies" isDropDisabled={false}>
       {(provided) => (
         <div 
-          className="flex flex-col gap-0"
+          className="flex flex-col gap-0 -mt-1"
           {...provided.droppableProps}
           ref={provided.innerRef}
         >

@@ -1,9 +1,8 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { RefreshCw, PlusCircle } from 'lucide-react';
-import { DragDropContext, Droppable, Draggable, type DropResult } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 
 import { Button } from '@/components/ui/button';
 import Calculator from '@/components/calculator';
@@ -255,7 +254,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-screen max-h-screen bg-background text-foreground max-w-md mx-auto">
-      <header className="flex items-center justify-between p-4">
+      <header className="flex items-center justify-between px-4 py-2">
         <h1 className="text-xl font-bold text-primary">Currency Convert</h1>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={handleRefresh} aria-label="Refresh rates">
