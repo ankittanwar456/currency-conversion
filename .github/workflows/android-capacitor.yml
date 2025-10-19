@@ -45,7 +45,7 @@ jobs:
           npx cap add android || echo "Android platform already exists"
 
       - name: Generate Capacitor assets (Android)
-        run: npx @capacitor/assets generate --android
+        run: npx @capacitor/assets generate --android --iconBackgroundColor "#CFF09E"
         # expects resources/icon.png to exist in the repo
 
       - name: Sync Capacitor
