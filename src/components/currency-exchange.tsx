@@ -81,7 +81,7 @@ const CurrencyExchange = ({
 
 
   return (
-    <Droppable droppableId="currencies">
+    <Droppable droppableId="currencies" isDropDisabled={false}>
       {(provided) => (
         <div 
           className="flex flex-col gap-0"
