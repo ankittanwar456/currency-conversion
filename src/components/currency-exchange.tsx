@@ -4,6 +4,7 @@
 import type { Rates } from '@/lib/currencies';
 import CurrencyRow from './currency-row';
 import { Skeleton } from './ui/skeleton';
+import { Droppable, Draggable } from 'react-beautiful-dnd';
 
 interface CurrencyExchangeProps {
   baseCurrency: string;
@@ -32,21 +33,36 @@ const CurrencyExchange = ({
 }: CurrencyExchangeProps) => {
   const numericAmount = parseFloat(amount) || 0;
 
-  const renderCurrencyRow = (code: string, index: number, isBase = false) => {
+  const renderCurrencyRow = (code: string, index: number) => {
+    const isBase = code === baseCurrency;
     const value = isBase ? numericAmount : (rates ? numericAmount * (rates[code.toLowerCase()] || 0) : 0);
     const displayValue = isBase ? displayAmount : value;
     
     return (
-      <CurrencyRow
-        key={code}
-        code={code}
-        name={currencyInfo[code.toLowerCase()] || ''}
-        value={displayValue}
-        isBase={isBase}
-        onChangeClick={isBase ? undefined : () => onCurrencyRowClick(index)}
-        onSelectClick={isBase ? undefined : () => setBaseCurrency(code)}
-        showResult={isBase && showResult}
-      />
+      <Draggable key={code} draggableId={code} index={index}>
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+            style={{
+              ...provided.draggableProps.style,
+              userSelect: 'none', // Prevent text selection while dragging
+            }}
+          >
+            <CurrencyRow
+              code={code}
+              name={currencyInfo[code.toLowerCase()] || ''}
+              value={displayValue}
+              isBase={isBase}
+              onChangeClick={() => onCurrencyRowClick(index)}
+              onSelectClick={() => setBaseCurrency(code)}
+              showResult={isBase && showResult}
+              isDragging={snapshot.isDragging}
+            />
+          </div>
+        )}
+      </Draggable>
     );
   };
   
@@ -65,18 +81,21 @@ const CurrencyExchange = ({
 
 
   return (
-    <div className="flex flex-col gap-1">
-      {renderCurrencyRow(baseCurrency, -1, true)}
-      <hr className="border-border my-1" />
-      {loading && rates === null
-        ? Array.from({ length: displayedCurrencies.length || 4 }).map((_, i) => renderSkeletonRow(i))
-        : displayedCurrencies
-            .filter(c => c !== baseCurrency)
-            .map((code, index) => renderCurrencyRow(code, index))}
-    </div>
+    <Droppable droppableId="currencies">
+      {(provided) => (
+        <div 
+          className="flex flex-col gap-0"
+          {...provided.droppableProps}
+          ref={provided.innerRef}
+        >
+          {loading && rates === null
+            ? Array.from({ length: displayedCurrencies.length || 4 }).map((_, i) => renderSkeletonRow(i))
+            : displayedCurrencies.map((code, index) => renderCurrencyRow(code, index))}
+          {provided.placeholder}
+        </div>
+      )}
+    </Droppable>
   );
 };
 
 export default CurrencyExchange;
-
-    

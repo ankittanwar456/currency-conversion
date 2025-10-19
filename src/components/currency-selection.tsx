@@ -39,18 +39,18 @@ export default function CurrencySelection({
 
   let disabledCurrencies = new Set<string>();
   if (isAdding) {
-    disabledCurrencies = new Set([baseCurrency, ...displayedCurrencies]);
+    disabledCurrencies = new Set(displayedCurrencies);
   } else if (editingIndex !== null) {
-    const current = displayedCurrencies[editingIndex];
-    disabledCurrencies = new Set([baseCurrency, ...displayedCurrencies.filter(c => c !== current)]);
+     const current = displayedCurrencies[editingIndex];
+     disabledCurrencies = new Set(displayedCurrencies.filter(c => c !== current));
   } else {
-    disabledCurrencies = new Set([baseCurrency, ...displayedCurrencies]);
+    disabledCurrencies = new Set(displayedCurrencies);
   }
 
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col h-screen max-h-screen max-w-md mx-auto">
       <header className="flex items-center justify-between p-4 border-b border-border">
-        <h2 className="text-xl font-bold text-primary">Select Currency</h2>
+        <h2 className="text-xl font-bold text-primary">{isAdding ? 'Add' : 'Select'} Currency</h2>
         <Button variant="ghost" size="icon" onClick={onCancel} aria-label="Cancel">
           <X className="h-5 w-5" />
         </Button>

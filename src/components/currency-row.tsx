@@ -14,9 +14,10 @@ interface CurrencyRowProps {
   onChangeClick?: () => void;
   onSelectClick?: () => void;
   showResult?: boolean;
+  isDragging?: boolean;
 }
 
-const CurrencyRow = ({ code, name, value, isBase, onChangeClick, onSelectClick, showResult }: CurrencyRowProps) => {
+const CurrencyRow = ({ code, name, value, isBase, onChangeClick, onSelectClick, showResult, isDragging = false }: CurrencyRowProps) => {
   
   const formattedValue = typeof value === 'number' 
     ? new Intl.NumberFormat('en-US', {
@@ -34,19 +35,20 @@ const CurrencyRow = ({ code, name, value, isBase, onChangeClick, onSelectClick, 
   return (
     <div
       className={cn(
-        "flex items-center justify-between w-full p-2 my-1 rounded-lg transition-colors",
-        isBase ? 'bg-secondary' : 'hover:bg-secondary/50'
+        "flex items-center justify-between w-full p-2 my-0.5 rounded-lg transition-colors",
+        isBase ? 'bg-secondary' : 'hover:bg-secondary/50',
+        isDragging && 'shadow-lg bg-secondary/80'
       )}
-      onClick={!isBase ? onSelectClick : undefined}
-      role={!isBase ? 'button' : undefined}
-      tabIndex={!isBase ? 0 : -1}
+      onClick={onSelectClick}
+      role={'button'}
+      tabIndex={0}
     >
       <div className="flex items-center gap-3">
         <Button
           variant="ghost"
           size="icon"
           className="h-10 w-10 shrink-0 rounded-full"
-          onClick={!isBase ? (e) => { e.stopPropagation(); onChangeClick && onChangeClick(); } : undefined}
+          onClick={(e) => { e.stopPropagation(); onChangeClick && onChangeClick(); }}
           aria-label={`Change ${code}`}
         >
           <Image

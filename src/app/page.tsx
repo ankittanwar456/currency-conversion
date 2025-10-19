@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { RefreshCw, PlusCircle } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable, type DropResult } from 'react-beautiful-dnd';
 
 import { Button } from '@/components/ui/button';
 import Calculator from '@/components/calculator';
@@ -13,7 +14,7 @@ import { fetchCurrencies, fetchRates } from '@/lib/currencies';
 import { useToast } from '@/hooks/use-toast';
 import CurrencySelection from '@/components/currency-selection';
 
-const DEFAULT_CURRENCIES = ['EUR', 'JPY', 'GBP', 'AUD'];
+const DEFAULT_CURRENCIES = ['USD', 'EUR', 'JPY', 'GBP', 'AUD'];
 
 function evaluateExpression(expression: string): string {
   try {
@@ -68,6 +69,10 @@ export default function Home() {
       try {
         const currencies = await fetchCurrencies();
         setAllCurrencies(currencies);
+        // Ensure base currency is in the list on first load
+        if (!displayedCurrencies.includes(baseCurrency)) {
+            setDisplayedCurrencies(prev => [baseCurrency, ...prev.filter(c => c !== baseCurrency)]);
+        }
         await loadRates(baseCurrency);
       } catch (error) {
         console.error('Failed to fetch currencies:', error);
@@ -79,51 +84,29 @@ export default function Home() {
       }
     }
     loadInitialData();
-  }, [baseCurrency, loadRates, toast]);
+  }, []);
+  
+  useEffect(() => {
+      loadRates(baseCurrency);
+  },[baseCurrency, loadRates])
+
 
   const handleBaseCurrencyChange = (newBase: string) => {
-    console.log('[Page] Change base currency requested', { newBase, oldBase: baseCurrency });
-    const oldBase = baseCurrency;
     setBaseCurrency(newBase);
-    setDisplayedCurrencies(prev => {
-      console.log('[Page] Updating displayed currencies after base change', { prev, newBase, oldBase });
-      const newDisplayed = prev.filter(c => c !== newBase);
-      if (!newDisplayed.includes(oldBase) && oldBase !== newBase) {
-         const oldBaseIndex = displayedCurrencies.indexOf(newBase);
-         if (oldBaseIndex !== -1) {
-            newDisplayed.splice(oldBaseIndex, 0, oldBase);
-         } else {
-            newDisplayed.push(oldBase);
-         }
-      }
-      console.log('[Page] New displayed after base change', newDisplayed);
-      return newDisplayed;
-    });
     setAmount('1');
     setShowResult(false);
   };
+  
+  const handleOnDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    const items = Array.from(displayedCurrencies);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    setDisplayedCurrencies(items);
+  };
 
   const handleCurrencySelection = (newCurrency: string | null) => {
-    console.log('[Page] handleCurrencySelection called', {
-      newCurrency,
-      isAddingCurrency,
-      selectingCurrencyIndex,
-      baseCurrency,
-      displayedCurrencies,
-    });
-    // Prevent selecting base currency anywhere
-    if (newCurrency && baseCurrency === newCurrency) {
-      toast({
-        variant: "destructive",
-        title: "Duplicate Currency",
-        description: `${newCurrency} is already displayed as base.`,
-      });
-      console.log('[Page] Selection blocked: tried to select base currency');
-      return;
-    }
-
     if (isAddingCurrency) {
-      // Adding a new currency: disallow duplicates
       if (newCurrency) {
         if (displayedCurrencies.includes(newCurrency)) {
           toast({
@@ -131,47 +114,47 @@ export default function Home() {
             title: "Duplicate Currency",
             description: `${newCurrency} is already displayed.`,
           });
-          console.log('[Page] Add blocked: duplicate currency', { newCurrency });
           return;
         }
-        const next = [...displayedCurrencies, newCurrency];
-        console.log('[Page] Adding new currency', { newCurrency, next });
-        setDisplayedCurrencies(next);
+        setDisplayedCurrencies(prev => [...prev, newCurrency]);
       }
     } else if (selectingCurrencyIndex !== null) {
-      // Editing an existing slot
       const newDisplayedCurrencies = [...displayedCurrencies];
       if (newCurrency) {
-        const existingIndex = displayedCurrencies.indexOf(newCurrency);
-        if (existingIndex !== -1 && existingIndex !== selectingCurrencyIndex) {
-          // Swap with the existing currency to avoid duplicates
-          const tmp = newDisplayedCurrencies[selectingCurrencyIndex];
-          newDisplayedCurrencies[selectingCurrencyIndex] = newDisplayedCurrencies[existingIndex];
-          newDisplayedCurrencies[existingIndex] = tmp;
-          console.log('[Page] Swapped currencies', { selectingCurrencyIndex, existingIndex, result: newDisplayedCurrencies });
-        } else {
-          newDisplayedCurrencies[selectingCurrencyIndex] = newCurrency;
-          console.log('[Page] Replaced currency in slot', { selectingCurrencyIndex, newCurrency, result: newDisplayedCurrencies });
+        if (displayedCurrencies.includes(newCurrency) && newCurrency !== displayedCurrencies[selectingCurrencyIndex]) {
+           toast({
+            variant: "destructive",
+            title: "Duplicate Currency",
+            description: `${newCurrency} is already displayed.`,
+          });
+          return;
         }
+        newDisplayedCurrencies[selectingCurrencyIndex] = newCurrency;
+
+        // If we changed the base currency, update it
+        if (baseCurrency === displayedCurrencies[selectingCurrencyIndex]) {
+            setBaseCurrency(newCurrency);
+        }
+
       } else {
-        // Disable this slot only if more than 3 remain
-        if (displayedCurrencies.length > 3) {
-          newDisplayedCurrencies.splice(selectingCurrencyIndex, 1);
-          console.log('[Page] Disabled currency slot', { selectingCurrencyIndex, result: newDisplayedCurrencies });
+        if (displayedCurrencies.length > 1) {
+           // If removing the base currency, set a new base
+           if (baseCurrency === newDisplayedCurrencies[selectingCurrencyIndex]) {
+             const newBase = newDisplayedCurrencies.find(c => c !== baseCurrency);
+             if (newBase) setBaseCurrency(newBase);
+           }
+           newDisplayedCurrencies.splice(selectingCurrencyIndex, 1);
         } else {
           toast({
             variant: "destructive",
             title: "Cannot Disable",
-            description: "You must have at least 3 currencies displayed.",
+            description: "You must have at least 1 currency displayed.",
           });
-          console.log('[Page] Disable blocked: minimum slots');
-          return; // Don't close the selection
+          return; 
         }
       }
       setDisplayedCurrencies(newDisplayedCurrencies);
     }
-
-    console.log('[Page] Closing selection overlay');
     setSelectingCurrencyIndex(null);
     setIsAddingCurrency(false);
   };
@@ -181,13 +164,11 @@ export default function Home() {
   };
 
   const handleCurrencyRowClick = (index: number) => {
-    console.log('[Page] Currency row clicked (open selection)', { index, currency: displayedCurrencies[index] });
     setSelectingCurrencyIndex(index);
     setIsAddingCurrency(false);
   }
 
   const handleAddCurrencyClick = () => {
-    console.log('[Page] Add Currency clicked (open selection)');
     setIsAddingCurrency(true);
     setSelectingCurrencyIndex(null); 
   }
@@ -260,7 +241,7 @@ export default function Home() {
       <CurrencySelection
         allCurrencies={allCurrencies}
         displayedCurrencies={displayedCurrencies}
-        baseCurrency={baseCurrency}
+        baseCurrency={''} // No concept of a fixed base currency in this view
         onSelect={handleCurrencySelection}
         onCancel={() => {
           setSelectingCurrencyIndex(null);
@@ -289,7 +270,7 @@ export default function Home() {
             <p className="text-muted-foreground">Loading currencies...</p>
           </div>
         ) : (
-          <>
+          <DragDropContext onDragEnd={handleOnDragEnd}>
             <CurrencyExchange
               baseCurrency={baseCurrency}
               setBaseCurrency={handleBaseCurrencyChange}
@@ -311,7 +292,7 @@ export default function Home() {
                     Add Currency
                 </Button>
             </div>
-          </>
+          </DragDropContext>
         )}
       </main>
 
@@ -321,5 +302,3 @@ export default function Home() {
     </div>
   );
 }
-
-    
