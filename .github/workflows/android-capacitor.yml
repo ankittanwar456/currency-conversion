@@ -27,10 +27,6 @@ jobs:
       - name: "Build Next.js (static export via output: export)"
         run: npx next build
 
-      - name: Generate Capacitor assets (Android)
-        run: npx @capacitor/assets generate --android
-        # expects resources/icon.png to exist in the repo
-
       - name: Install Capacitor CLI
         run: npm i -D @capacitor/cli
 
@@ -44,10 +40,16 @@ jobs:
           & $sdk --licenses
           & $sdk "platform-tools" "build-tools;34.0.0" "platforms;android-34"
 
-      - name: Add Android platform (if not present) and sync
+      - name: Add Android platform (if not present)
         run: |
           npx cap add android || echo "Android platform already exists"
-          npx cap sync android
+
+      - name: Generate Capacitor assets (Android)
+        run: npx @capacitor/assets generate --android
+        # expects resources/icon.png to exist in the repo
+
+      - name: Sync Capacitor
+        run: npx cap sync android
 
       - name: Build debug APK
         run: .\android\gradlew.bat -p .\android assembleDebug
