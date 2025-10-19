@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+
 import { RefreshCw, PlusCircle } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 
@@ -45,33 +46,63 @@ export default function Home() {
   const [selectingCurrencyIndex, setSelectingCurrencyIndex] = useState<number | null>(null);
   const [isAddingCurrency, setIsAddingCurrency] = useState(false);
 
+  const getRatesCacheKey = (base: string) => `cachedRates:${base.toUpperCase()}`;
+  const readCachedRates = (base: string): { rates: Rates; fetchedAt: number } | null => {
+    try {
+      const raw = typeof window !== 'undefined' ? window.localStorage.getItem(getRatesCacheKey(base)) : null;
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as { rates: Rates; fetchedAt: number };
+      if (parsed && parsed.rates) return parsed;
+    } catch {}
+    return null;
+  };
+  const writeCachedRates = (base: string, value: { rates: Rates; fetchedAt: number }) => {
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(getRatesCacheKey(base), JSON.stringify(value));
+      }
+    } catch {}
+  };
+
 
   const loadRates = useCallback(async (base: string) => {
     try {
       setLoading(true);
       const fetchedRates = await fetchRates(base);
       setRates(fetchedRates);
+      writeCachedRates(base, { rates: fetchedRates, fetchedAt: Date.now() });
     } catch (error) {
       console.error('Failed to fetch rates:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load exchange rates. Please try again.",
-      });
+      const cached = readCachedRates(base);
+      if (cached) {
+        setRates(cached.rates);
+        toast({
+          variant: "default",
+          title: "Offline mode",
+          description: `Showing cached rates for ${base} from ${new Date(cached.fetchedAt).toLocaleString()}.`,
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to load exchange rates. Please try again.",
+        });
+      }
     } finally {
       setLoading(false);
     }
   }, [toast]);
+
 
   useEffect(() => {
     async function loadInitialData() {
       try {
         const currencies = await fetchCurrencies();
         setAllCurrencies(currencies);
-        // Ensure base currency is in the list on first load
         if (!displayedCurrencies.includes(baseCurrency)) {
             setDisplayedCurrencies(prev => [baseCurrency, ...prev.filter(c => c !== baseCurrency)]);
         }
+        // Try network; if it fails, loadRates will fallback to cache
         await loadRates(baseCurrency);
       } catch (error) {
         console.error('Failed to fetch currencies:', error);
@@ -80,14 +111,52 @@ export default function Home() {
           title: "Error",
           description: "Failed to load currency list.",
         });
+        // Still try to show cached rates if present
+        const cached = readCachedRates(baseCurrency);
+        if (cached) {
+          setRates(cached.rates);
+        }
       }
     }
     loadInitialData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  
+
+
   useEffect(() => {
       loadRates(baseCurrency);
   },[baseCurrency, loadRates])
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null;
+    const schedule = () => {
+      if (interval) clearInterval(interval);
+      const online = typeof navigator !== 'undefined' ? navigator.onLine : true;
+      const ms = online ? 60 * 60 * 1000 : 10 * 1000; // 1h online, 10s offline retry
+      interval = setInterval(() => {
+        loadRates(baseCurrency);
+      }, ms);
+    };
+    schedule();
+    const onOnline = () => {
+      schedule();
+      loadRates(baseCurrency);
+    };
+    const onOffline = () => {
+      schedule();
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', onOnline);
+      window.addEventListener('offline', onOffline);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('online', onOnline);
+        window.removeEventListener('offline', onOffline);
+      }
+    };
+  }, [baseCurrency, loadRates]);
 
 
   const handleBaseCurrencyChange = (newBase: string) => {
