@@ -256,7 +256,10 @@ export default function Home() {
     <div className="flex flex-col h-screen max-h-screen bg-background text-foreground max-w-md mx-auto">
       <header className="flex items-center justify-between px-4 py-2">
         <h1 className="text-xl font-bold text-primary">Currency Convert</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" onClick={handleAddCurrencyClick} aria-label="Add currency">
+            <PlusCircle className="h-5 w-5" />
+          </Button>
           <Button variant="ghost" size="icon" onClick={handleRefresh} aria-label="Refresh rates">
             <RefreshCw className="h-5 w-5" />
           </Button>
@@ -285,12 +288,6 @@ export default function Home() {
               showResult={showResult}
               onCurrencyRowClick={handleCurrencyRowClick}
             />
-            <div className="my-4">
-                <Button variant="outline" className="w-full h-12" onClick={handleAddCurrencyClick}>
-                    <PlusCircle className="mr-2 h-5 w-5" />
-                    Add Currency
-                </Button>
-            </div>
           </DragDropContext>
         )}
       </main>
